@@ -2531,8 +2531,11 @@ void _flatten(
       // get name for subject
       if(name == NULL)
       {
-         name = _isBlankNode(input) ?
-            _getName(namer, input["@id"]) : input["@id"];
+         name = input->hasMember("@id") ? input["@id"]->getString() : NULL;
+         if(_isBlankNode(input))
+         {
+            name = _getName(namer, name);
+         }
       }
 
       // add subject reference to list
@@ -2578,8 +2581,9 @@ void _flatten(
             // handle embedded subject or subject reference
             if(_isSubject(o) || _isSubjectReference(o))
             {
-               const char* id = o->hasMember("@id") ? o["@id"] : "_:";
-               if(strncmp(id, "_:", 2) == 0)
+               const char* id = o->hasMember("@id") ?
+                  o["@id"]->getString() : NULL;
+               if(_isBlankNode(o))
                {
                   id = _getName(namer, id);
                }
