@@ -197,17 +197,21 @@ public:
     * @param value the value to add.
     * @param [propertyIsArray] true if the property is always an array, false
     *           if not (default: false).
+    * @param [propertyIsList] true if the property is a @list, false
+    *           if not (default: false).
     */
    static void addValue(
       monarch::rt::DynamicObject& subject,
       const char* property,
       monarch::rt::DynamicObject value,
-      bool propertyIsArray = false);
+      bool propertyIsArray = false,
+      bool propertyIsList = false);
    static void addValue(
       monarch::rt::DynamicObject& subject,
       const char* property,
       const char* value,
-      bool propertyIsArray = false);
+      bool propertyIsArray = false,
+      bool propertyIsList = false);
 
    /**
     * Gets all of the values for a subject's property as an array.

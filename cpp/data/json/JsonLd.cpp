@@ -220,8 +220,8 @@ bool _hashPaths(
    UniqueNamer& namer, UniqueNamer pathNamer, DynamicObject& result);
 const char* _getAdjacentBlankNodeName(DynamicObject value, const char* id);
 void _flatten(
-   DynamicObject subjects, DynamicObject input, UniqueNamer namer,
-   const char* name, DynamicObject* list);
+   DynamicObject input, DynamicObject graphs, const char* graph,
+   UniqueNamer namer, const char* name, DynamicObject* list);
 bool _frame(
    DynamicObject& state, DynamicObject subjects,
    DynamicObject frame, DynamicObject parent, const char* property);
@@ -772,8 +772,13 @@ bool JsonLd::hasValue(
 
 void JsonLd::addValue(
    DynamicObject& subject, const char* property, DynamicObject value,
-   bool propertyIsArray)
+   bool propertyIsArray, bool propertyIsList)
 {
+   if(strcmp(property, "@list") == 0)
+   {
+      propertyIsList = true;
+   }
+
    if(_isArray(value))
    {
       if(value->length() == 0 && propertyIsArray &&
@@ -784,12 +789,15 @@ void JsonLd::addValue(
       DynamicObjectIterator i = value.getIterator();
       while(i->hasNext())
       {
-         JsonLd::addValue(subject, property, i->next(), propertyIsArray);
+         JsonLd::addValue(
+            subject, property, i->next(), propertyIsArray, propertyIsList);
       }
    }
    else if(subject->hasMember(property))
    {
-      bool hasValue = JsonLd::hasValue(subject, property, value);
+      // check if subject already has value unless property is list
+      bool hasValue = (!propertyIsList &&
+         JsonLd::hasValue(subject, property, value));
 
       // make property an array if value not present or always an array
       if(!_isArray(subject[property]) && (!hasValue || propertyIsArray))
@@ -816,11 +824,11 @@ void JsonLd::addValue(
 }
 void JsonLd::addValue(
    DynamicObject& subject, const char* property, const char* value,
-   bool propertyIsArray)
+   bool propertyIsArray, bool propertyIsList)
 {
    DynamicObject v;
    v = value;
-   addValue(subject, property, v, propertyIsArray);
+   addValue(subject, property, v, propertyIsArray, propertyIsList);
 }
 
 DynamicObject JsonLd::getValues(DynamicObject& subject, const char* property)
@@ -1133,7 +1141,7 @@ bool Processor::compact(
                (_isArray(v) && v->length() == 0));
 
             // add compact value
-            JsonLd::addValue(output, prop, v, isArray);
+            JsonLd::addValue(output, prop, v, isArray, (container == "@list"));
          }
       }
       return true;
@@ -1430,11 +1438,16 @@ bool Processor::frame(
    // create framing state
    DynamicObject state;
    state["options"] = options;
-   state["subjects"]->setType(Map);
+   state["graphs"]["@default"]->setType(Map);
+   state["graphs"]["@merged"]->setType(Map);
 
    // produce a map of all subjects and name each bnode
    UniqueNamer namer = _createUniqueNamer("_:t");
-   _flatten(state["subjects"], input, namer, NULL, NULL);
+   _flatten(input, state["graphs"], "@default", namer, NULL, NULL);
+   namer = _createUniqueNamer("_:t");
+   _flatten(input, state["graphs"], "@merged", namer, NULL, NULL);
+   // FIXME: currently uses subjects from @merged graph only
+   state["subjects"] = state["graphs"]["@merged"];
 
    // frame the subjects
    output = DynamicObject(Array);
@@ -2499,15 +2512,16 @@ const char* _getAdjacentBlankNodeName(DynamicObject node, const char* id)
 /**
  * Recursively flattens the subjects in the given JSON-LD expanded input.
  *
- * @param subjects a map of subject ID to subject.
- * @param input the JSON-LD compact input.
+ * @param input the JSON-LD expanded input.
+ * @param graphs a map of graph name to subject map.
+ * @param graph the name of the current graph.
  * @param namer the blank node namer.
  * @param name the name assigned to the current input if it is a bnode.
  * @param list the list to append to, null for none.
  */
 void _flatten(
-   DynamicObject subjects, DynamicObject input, UniqueNamer namer,
-   const char* name, DynamicObject* list)
+   DynamicObject input, DynamicObject graphs, const char* graph,
+   UniqueNamer namer, const char* name, DynamicObject* list)
 {
    // recurse through array
    if(_isArray(input))
@@ -2515,111 +2529,115 @@ void _flatten(
       DynamicObjectIterator i = input.getIterator();
       while(i->hasNext())
       {
-         _flatten(subjects, i->next(), namer, NULL, list);
+         _flatten(i->next(), graphs, graph, namer, NULL, list);
       }
+      return;
    }
-   // handle subject
-   else if(_isObject(input))
+
+   // handle non-object or value
+   if(!_isObject(input) || _isValue(input))
    {
-      // add value to list
-      if(_isValue(input) && list != NULL)
-      {
-         (*list).push(input);
-         return;
-      }
-
-      // get name for subject
-      if(name == NULL)
-      {
-         name = input->hasMember("@id") ? input["@id"]->getString() : NULL;
-         if(_isBlankNode(input))
-         {
-            name = _getName(namer, name);
-         }
-      }
-
-      // add subject reference to list
       if(list != NULL)
       {
-         DynamicObject ref(Map);
-         ref["@id"] = name;
-         (*list).push(ref);
+         (*list).push(input);
       }
+      return;
+   }
 
-      // create new subject or merge into existing one
-      if(!subjects->hasMember(name))
+   // Note: At this point, input must be a subject.
+
+   // get name for subject
+   if(name == NULL)
+   {
+      name = input->hasMember("@id") ? input["@id"]->getString() : NULL;
+      if(_isBlankNode(input))
       {
-         subjects[name]->setType(Map);
-      }
-      DynamicObject& subject = subjects[name];
-      subject["@id"] = name;
-      DynamicObjectIterator i = input.getIterator();
-      while(i->hasNext())
-      {
-         i->next();
-         const char* prop = i->getName();
-
-         // skip @id
-         if(strcmp(prop, "@id") == 0)
-         {
-            continue;
-         }
-
-         // copy non-@type keywords
-         if(strcmp(prop, "@type") != 0 && _isKeyword(prop))
-         {
-            subject[prop] = input[prop];
-            continue;
-         }
-
-         // iterate over objects
-         DynamicObjectIterator oi = input[prop].getIterator();
-         while(oi->hasNext())
-         {
-            DynamicObject o = oi->next();
-
-            // handle embedded subject or subject reference
-            if(_isSubject(o) || _isSubjectReference(o))
-            {
-               const char* id = o->hasMember("@id") ?
-                  o["@id"]->getString() : NULL;
-               if(_isBlankNode(o))
-               {
-                  id = _getName(namer, id);
-               }
-
-               // add reference and recurse
-               DynamicObject ref(Map);
-               ref["@id"] = id;
-               JsonLd::addValue(subject, prop, ref, true);
-               _flatten(subjects, o, namer, id, NULL);
-            }
-            else
-            {
-               // recurse into list
-               if(_isList(o))
-               {
-                  DynamicObject _list(Array);
-                  _flatten(subjects, o["@list"], namer, name, &_list);
-                  o = DynamicObject(Map);
-                  o["@list"] = _list;
-               }
-               // special-handle @type IRIs
-               else if(strcmp(prop, "@type") == 0 && strncmp(o, "_:", 2) == 0)
-               {
-                  o = _getName(namer, o);
-               }
-
-               // add non-subject
-               JsonLd::addValue(subject, prop, o, true);
-            }
-         }
+         name = _getName(namer, name);
       }
    }
-   // add non-object to list
-   else if(list != NULL)
+
+   // add subject reference to list
+   if(list != NULL)
    {
-      (*list).push(input);
+      DynamicObject ref(Map);
+      ref["@id"] = name;
+      (*list).push(ref);
+   }
+
+   // create new subject or merge into existing one
+   DynamicObject& subject = graphs[graph][name];
+   subject["@id"] = name;
+   DynamicObjectIterator i = input.getIterator();
+   while(i->hasNext())
+   {
+      i->next();
+      const char* prop = i->getName();
+
+      // skip @id
+      if(strcmp(prop, "@id") == 0)
+      {
+         continue;
+      }
+
+      // recurse into graph
+      if(strcmp(prop, "@graph") == 0)
+      {
+         const char* g = (strcmp(graph, "@merged") == 0) ? graph : name;
+         _flatten(input[prop], graphs, g, namer, NULL, NULL);
+         continue;
+      }
+
+      // copy non-@type keywords
+      if(strcmp(prop, "@type") != 0 && _isKeyword(prop))
+      {
+         subject[prop] = input[prop];
+         continue;
+      }
+
+      // iterate over objects
+      DynamicObjectIterator oi = input[prop].getIterator();
+      while(oi->hasNext())
+      {
+         DynamicObject o = oi->next();
+
+         // handle embedded subject or subject reference
+         if(_isSubject(o) || _isSubjectReference(o))
+         {
+            const char* id = o->hasMember("@id") ?
+               o["@id"]->getString() : NULL;
+            if(_isBlankNode(o))
+            {
+               id = _getName(namer, id);
+            }
+
+            // add reference and recurse
+            DynamicObject ref(Map);
+            ref["@id"] = id;
+            JsonLd::addValue(subject, prop, ref, true);
+            _flatten(o, graphs, graph, namer, id, NULL);
+         }
+         else
+         {
+            // recurse into list
+            if(_isList(o))
+            {
+               DynamicObject _list(Array);
+               _flatten(o["@list"], graphs, graph, namer, name, &_list);
+               o = DynamicObject(Map);
+               o["@list"] = _list;
+            }
+            // special-handle @type IRIs
+            else if(strcmp(prop, "@type") == 0 && strncmp(o, "_:", 2) == 0)
+            {
+               const char* id = o;
+               o = DynamicObject(String);
+               o = _getName(namer, id);
+            }
+
+            // add non-subject
+            JsonLd::addValue(subject, prop, o, true);
+         }
+      }
    }
 }
 
